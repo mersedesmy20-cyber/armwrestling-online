@@ -589,6 +589,28 @@ function updateProgress(progress) {
         glow.style.opacity = intensity * 0.8;
     }
 
+    // Real-world arm wrestling physics body tilt & shift calculations
+    const shiftFactor = 0.5; // Up to 25px translation
+    const rotFactor = 0.16;   // Up to 8 degrees rotation
+    
+    const p1x = (progress - 50) * shiftFactor;
+    const p1rot = (progress - 50) * rotFactor;
+    
+    const p2x = (progress - 50) * shiftFactor;
+    const p2rot = (progress - 50) * rotFactor;
+
+    const wrestlerP1 = document.getElementById('wrestler-p1');
+    const wrestlerP2 = document.getElementById('wrestler-p2');
+
+    if (wrestlerP1) {
+        wrestlerP1.style.setProperty('--p1-x', `${p1x}px`);
+        wrestlerP1.style.setProperty('--p1-rot', `${p1rot}deg`);
+    }
+    if (wrestlerP2) {
+        wrestlerP2.style.setProperty('--p2-x', `${p2x}px`);
+        wrestlerP2.style.setProperty('--p2-rot', `${p2rot}deg`);
+    }
+
     // Trigger physical strain vibration depending on who tapped
     if (progress > lastProgress) {
         triggerTenseAnimation('p1');

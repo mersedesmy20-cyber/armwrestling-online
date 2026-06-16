@@ -367,6 +367,9 @@ body, html {
     width: 220px;
     height: 330px;
     position: relative;
+    /* Real-world physics body translation using CSS variables */
+    transform: scale(var(--base-scale, 1.05)) translateX(var(--p1-x, var(--p2-x, 0px))) translateY(var(--p1-y, var(--p2-y, 0px))) rotate(var(--p1-rot, var(--p2-rot, 0deg)));
+    transition: transform 0.12s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .wrestler-body-wrapper {
@@ -388,8 +391,8 @@ body, html {
 
 /* Absolute head positioning to match headless neck joints */
 #wrestler-p1 .wrestler-head {
-    top: 5px;
-    left: 88px; /* Alignment for left wrestler's neck */
+    top: -5px;
+    left: 80px; /* Alignment for left wrestler's neck */
 }
 
 #wrestler-p2 .wrestler-head {
@@ -471,7 +474,7 @@ body, html {
     width: 180px;
     height: 180px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(241, 196, 15, 0.2) 0%, rgba(241, 196, 15, 0) 70%);
+    background: radial-gradient(circle, rgba(241, 196, 15, 0.25) 0%, rgba(241, 196, 15, 0) 70%);
     pointer-events: none;
     z-index: 14;
     opacity: 0;
@@ -572,6 +575,7 @@ body, html {
 
     /* Scale down all assets in portrait so they fit inside screen width */
     .wrestler-container {
+        --base-scale: 0.9;
         width: 120px;
         height: 200px;
     }
@@ -588,8 +592,8 @@ body, html {
     }
 
     #wrestler-p1 .wrestler-head {
-        top: 2px;
-        left: 48px; /* Scaled neck alignment P1 */
+        top: -2px;
+        left: 45px; /* Scaled neck alignment P1 */
     }
 
     #wrestler-p2 .wrestler-head {
