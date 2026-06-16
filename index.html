@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Армреслінг Онлайн</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    <!-- Include PeerJS library for Peer-to-Peer WebRTC networking -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+    <div id="status-bar">
+        <span id="role-indicator">Не підключено</span>
+        <span id="room-indicator" class="hidden">Кімната: ----</span>
+    </div>
+
+    <!-- P2P Connection Screen -->
+    <div id="connect-screen" class="screen">
+        <h1>Армреслінг Онлайн</h1>
+        
+        <div class="connect-box">
+            <button id="create-btn" onclick="initiateHost()">СТВОРИТИ КІМНАТУ</button>
+            
+            <div class="divider">або</div>
+            
+            <div class="join-form">
+                <input type="number" id="join-code-input" placeholder="Введіть 4-значний код" min="1000" max="9999">
+                <button id="join-btn" onclick="initiateJoiner()">ПРИЄДНАТИСЯ</button>
+            </div>
+        </div>
+
+        <div id="connect-status">Оберіть режим, щоб почати...</div>
+    </div>
+
+    <!-- Character Selection Screen (Lobby) -->
+    <div id="setup-screen" class="screen hidden">
+        <h1>Оберіть бійців</h1>
+        <div class="selection-area">
+            <!-- Player 1 Select -->
+            <div class="player-select" id="p1-select">
+                <h2 id="p1-title">Гравець 1 (Хост)</h2>
+                <div class="carousel" id="carousel-p1">
+                    <div class="carousel-placeholder">Очікування...</div>
+                </div>
+                <div class="carousel-controls" id="controls-p1">
+                    <button class="nav-btn" onclick="changeChar(-1)">&#9664;</button>
+                    <button class="nav-btn" onclick="changeChar(1)">&#9654;</button>
+                </div>
+                <div class="ready-badge" id="ready-p1">НЕ ГОТОВИЙ</div>
+            </div>
+            
+            <div class="vs-badge">VS</div>
+            
+            <!-- Player 2 Select -->
+            <div class="player-select" id="p2-select">
+                <h2 id="p2-title">Гравець 2 (Гість)</h2>
+                <div class="carousel" id="carousel-p2">
+                    <div class="carousel-placeholder">Очікування...</div>
+                </div>
+                <div class="carousel-controls" id="controls-p2">
+                    <button class="nav-btn" onclick="changeChar(-1)">&#9664;</button>
+                    <button class="nav-btn" onclick="changeChar(1)">&#9654;</button>
+                </div>
+                <div class="ready-badge" id="ready-p2">НЕ ГОТОВИЙ</div>
+            </div>
+        </div>
+        
+        <button id="ready-btn" onclick="toggleReady()">ГОТОВИЙ</button>
+        <div id="lobby-message">Очікування суперника...</div>
+    </div>
+
+    <!-- Active Game Screen (Tapping Arena) -->
+    <div id="game-screen" class="screen hidden">
+        <div class="arena" id="arena-tap-zone">
+            <!-- Player 1 Side -->
+            <div class="arena-side" id="side-p1">
+                <div class="player-info">
+                    <img id="p1-img" src="" alt="Player 1">
+                    <div class="player-name-tag" id="p1-game-name">Гравець 1</div>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+                <div class="marker"></div>
+            </div>
+            
+            <!-- Player 2 Side -->
+            <div class="arena-side" id="side-p2">
+                <div class="player-info">
+                    <img id="p2-img" src="" alt="Player 2">
+                    <div class="player-name-tag" id="p2-game-name">Гравець 2</div>
+                </div>
+            </div>
+
+            <!-- Tap Instructions -->
+            <div id="tap-instruction-overlay">ТАПАЙТЕ ПО ЕКРАНУ!</div>
+        </div>
+        
+        <div id="countdown" class="hidden">3</div>
+    </div>
+
+    <!-- Result / Winner Screen -->
+    <div id="result-screen" class="screen hidden">
+        <h1 id="winner-text">ПЕРЕМОГА!</h1>
+        <img id="winner-img" src="" alt="Winner">
+        <div class="result-message">Повернення в лобі...</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
