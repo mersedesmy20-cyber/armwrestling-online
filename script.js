@@ -6,11 +6,11 @@ const characters = [
 ];
 
 let peer = null;
-let connection = null; // DataConnection object
-let myRole = 'spectator'; // 'p1' (Host) or 'p2' (Joiner)
+let connection = null; 
+let myRole = 'spectator'; 
 let gameActive = false;
 
-// Host-specific state (Host is the single source of truth)
+// Host-specific state
 let hostState = {
     p1Connected: false,
     p1CharIndex: 0,
@@ -22,6 +22,8 @@ let hostState = {
     gameActive: false
 };
 
+let localState = null;
+
 // UI Elements
 const connectScreen = document.getElementById('connect-screen');
 const setupScreen = document.getElementById('setup-screen');
@@ -32,15 +34,31 @@ const roleIndicator = document.getElementById('role-indicator');
 const roomIndicator = document.getElementById('room-indicator');
 const lobbyMessage = document.getElementById('lobby-message');
 const readyBtn = document.getElementById('ready-btn');
+const debugLog = document.getElementById('debug-log');
+
+// Debug Logging Helper
+function logDebug(msg, color = '#00f2fe') {
+    console.log(msg);
+    if (debugLog) {
+        debugLog.innerHTML += `<div style="color: ${color}; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0;">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+        debugLog.scrollTop = debugLog.scrollHeight;
+    }
+}
+
+// Global JS Error Handler
+window.onerror = function (msg, url, lineNo, columnNo, error) {
+    logDebug(`КРИТИЧНА ПОМИЛКА: ${msg} (рядок ${lineNo}:${columnNo})`, '#ff4d4d');
+    return false;
+};
 
 /* ==========================================================================
    HOST GAME FLOW (Player 1)
    ========================================================================== */
 
 function initiateHost() {
+    logDebug('Ініціалізація хоста...');
     connectStatus.textContent = 'Зв\'язок з хмарним сервером PeerJS...';
     
-    // Generate a random 4-digit code
     const code = Math.floor(1000 + Math.random() * 9000);
     const peerId = `armwrestling-p2p-${code}`;
 
@@ -50,22 +68,20 @@ function initiateHost() {
         myRole = 'p1';
         hostState.p1Connected = true;
         
-        // Show room code
         roomIndicator.textContent = `Кімната: ${code}`;
         roomIndicator.classList.remove('hidden');
         roleIndicator.textContent = 'Ви: Гравець 1 (Хост)';
         roleIndicator.style.color = '#4facfe';
 
         connectStatus.innerHTML = `Кімнату створено! Код доступу: <span style="font-size:1.8rem; color:#00f2fe; font-weight:900;">${code}</span><br>Поділіться цим кодом з суперником.`;
+        logDebug(`Кімнату створено з кодом ${code}. Очікування підключення...`);
         
-        // Host is ready to receive P2 connection
         listenForPlayer2();
     });
 
     peer.on('error', (err) => {
-        console.error('PeerJS Host Error:', err);
+        logDebug(`Помилка PeerJS (Хост): ${err.type} - ${err.message}`, '#ff4d4d');
         if (err.type === 'unavailable-id') {
-            // Retry if ID is somehow taken
             initiateHost();
         } else {
             connectStatus.textContent = `Помилка: ${err.message}`;
@@ -75,8 +91,10 @@ function initiateHost() {
 
 function listenForPlayer2() {
     peer.on('connection', (conn) => {
+        logDebug(`Отримано запит на підключення від ${conn.peer}`);
+        
         if (hostState.p2Connected) {
-            // We already have a Player 2, deny subsequent connections
+            logDebug('Відхилено підключення (лобі заповнене)');
             conn.on('open', () => {
                 conn.send({ type: 'lobby_full' });
                 setTimeout(() => conn.close(), 500);
@@ -86,29 +104,39 @@ function listenForPlayer2() {
 
         connection = conn;
         hostState.p2Connected = true;
-        console.log('Player 2 connected');
-
-        // Set up connection event handlers
+        
         setupHostDataListeners();
     });
 }
 
 function setupHostDataListeners() {
-    connection.on('open', () => {
-        // Switch to setup lobby screen
+    const handleOpen = () => {
+        logDebug('З\'єднання з Гравцем 2 встановлено успішно!');
         connectScreen.classList.add('hidden');
         setupScreen.classList.remove('hidden');
         
-        // Sync initial state to Player 2
         sendStateToP2();
         updateLobbyUI(hostState);
-    });
+    };
+
+    // Resilient open event handler
+    if (connection.open) {
+        handleOpen();
+    } else {
+        connection.on('open', handleOpen);
+    }
 
     connection.on('data', (data) => {
+        logDebug(`Хост отримав дані: ${JSON.stringify(data)}`);
         handleIncomingDataAsHost(data);
     });
 
+    connection.on('error', (err) => {
+        logDebug(`Помилка з'єднання: ${err.message}`, '#ff4d4d');
+    });
+
     connection.on('close', () => {
+        logDebug('Гравець 2 відключився', '#ff758c');
         alert('Суперник відключився!');
         hostState.p2Connected = false;
         hostState.p2Ready = false;
@@ -118,10 +146,13 @@ function setupHostDataListeners() {
 
 function sendStateToP2() {
     if (connection && connection.open) {
+        logDebug('Відправка оновлення стану Гравцю 2...');
         connection.send({
             type: 'state_update',
             state: hostState
         });
+    } else {
+        logDebug('Помилка: Спроба відправити стан, але з\'єднання закрите', '#ff4d4d');
     }
 }
 
@@ -136,12 +167,10 @@ function handleIncomingDataAsHost(data) {
         hostState.p2Ready = data.ready;
         sendStateToP2();
         updateLobbyUI(hostState);
-        
         checkGameStartConditions();
     }
 
     if (data.type === 'tap' && hostState.gameActive) {
-        // Player 2 taps: decreases progress (moves to right/red)
         hostState.progress -= 2;
         handleGameplayProgress();
     }
@@ -149,10 +178,10 @@ function handleIncomingDataAsHost(data) {
 
 function checkGameStartConditions() {
     if (hostState.p1Ready && hostState.p2Ready && !hostState.gameActive) {
+        logDebug('Початок гри! Обидва гравці готові.');
         hostState.gameActive = true;
         hostState.progress = 50;
 
-        // Broadcast game start signal to P2
         if (connection && connection.open) {
             connection.send({
                 type: 'game_start',
@@ -161,29 +190,24 @@ function checkGameStartConditions() {
             });
         }
         
-        // Start local game
         runStartSequence(hostState.p1CharIndex, hostState.p2CharIndex);
     }
 }
 
 function handleGameplayProgress() {
-    // Check win conditions
     if (hostState.progress >= 100) {
         hostState.progress = 100;
-        
         const winPayload = { type: 'game_over', winner: 'p1', progress: 100 };
         if (connection && connection.open) connection.send(winPayload);
         runEndSequence('p1', 100);
         resetToLobby();
     } else if (hostState.progress <= 0) {
         hostState.progress = 0;
-        
         const winPayload = { type: 'game_over', winner: 'p2', progress: 0 };
         if (connection && connection.open) connection.send(winPayload);
         runEndSequence('p2', 0);
         resetToLobby();
     } else {
-        // Broadcast progress update
         const progressPayload = { type: 'progress_update', progress: hostState.progress };
         if (connection && connection.open) connection.send(progressPayload);
         updateProgress(hostState.progress);
@@ -191,6 +215,7 @@ function handleGameplayProgress() {
 }
 
 function resetToLobby() {
+    logDebug('Скидання гри в режим лобі');
     hostState.gameActive = false;
     hostState.progress = 50;
     hostState.p1Ready = false;
@@ -212,9 +237,9 @@ function initiateJoiner() {
         return;
     }
 
+    logDebug(`Підключення як гість до коду ${codeInput}...`);
     connectStatus.textContent = 'Зв\'язок з хмарним сервером PeerJS...';
 
-    // Assign a random ID or let peerjs handle it
     peer = new Peer();
 
     peer.on('open', (id) => {
@@ -224,7 +249,6 @@ function initiateJoiner() {
         
         connectStatus.textContent = `Підключення до кімнати ${codeInput}...`;
 
-        // Connect to Host peer ID
         const hostPeerId = `armwrestling-p2p-${codeInput}`;
         connection = peer.connect(hostPeerId);
 
@@ -232,19 +256,28 @@ function initiateJoiner() {
     });
 
     peer.on('error', (err) => {
-        console.error('PeerJS Joiner Error:', err);
+        logDebug(`Помилка PeerJS (Гість): ${err.type} - ${err.message}`, '#ff4d4d');
         connectStatus.textContent = `Помилка: ${err.message}`;
     });
 }
 
 function setupJoinerDataListeners() {
-    connection.on('open', () => {
+    const handleOpen = () => {
+        logDebug('Встановлено з\'єднання з Хостом!');
         connectScreen.classList.add('hidden');
         setupScreen.classList.remove('hidden');
         lobbyMessage.textContent = 'Підключено! Очікуємо синхронізацію...';
-    });
+    };
+
+    if (connection.open) {
+        handleOpen();
+    } else {
+        connection.on('open', handleOpen);
+    }
 
     connection.on('data', (data) => {
+        logDebug(`Гість отримав дані: ${JSON.stringify(data)}`);
+        
         if (data.type === 'lobby_full') {
             alert('Кімната вже заповнена!');
             window.location.reload();
@@ -269,7 +302,12 @@ function setupJoinerDataListeners() {
         }
     });
 
+    connection.on('error', (err) => {
+        logDebug(`Помилка з'єднання: ${err.message}`, '#ff4d4d');
+    });
+
     connection.on('close', () => {
+        logDebug('Хост розірвав з\'єднання', '#ff758c');
         alert('Хост розірвав з\'єднання!');
         window.location.reload();
     });
@@ -280,9 +318,8 @@ function setupJoinerDataListeners() {
    COMMON LOBBY AND GAMEPLAY LOGIC
    ========================================================================== */
 
-let localState = null;
-
 function updateLobbyUI(state) {
+    if (!state) return;
     localState = state;
 
     // Player 1 Sync
@@ -376,33 +413,46 @@ function updateLobbyUI(state) {
 function changeChar(direction) {
     if (gameActive) return;
     
-    let currentIdx = (myRole === 'p1') ? hostState.p1CharIndex : localState.p2CharIndex;
+    let currentIdx = (myRole === 'p1') ? hostState.p1CharIndex : (localState ? localState.p2CharIndex : 1);
     let newIndex = (currentIdx + direction + characters.length) % characters.length;
+
+    logDebug(`Зміна персонажа на індекс ${newIndex}`);
 
     if (myRole === 'p1') {
         hostState.p1CharIndex = newIndex;
         sendStateToP2();
         updateLobbyUI(hostState);
     } else if (myRole === 'p2') {
-        connection.send({
-            type: 'select_char',
-            index: newIndex
-        });
+        if (connection && connection.open) {
+            connection.send({
+                type: 'select_char',
+                index: newIndex
+            });
+        }
     }
 }
 
 // Toggle ready status
 function toggleReady() {
+    logDebug('Клік на кнопку "Готовий"');
+    
     if (myRole === 'p1') {
         hostState.p1Ready = !hostState.p1Ready;
+        logDebug(`Хост перемикає готовність: ${hostState.p1Ready}`);
         sendStateToP2();
         updateLobbyUI(hostState);
         checkGameStartConditions();
     } else if (myRole === 'p2') {
-        connection.send({
-            type: 'toggle_ready',
-            ready: !localState.p2Ready
-        });
+        const isReadyNow = localState ? !localState.p2Ready : true;
+        logDebug(`Гість надсилає статус готовності: ${isReadyNow}`);
+        if (connection && connection.open) {
+            connection.send({
+                type: 'toggle_ready',
+                ready: isReadyNow
+            });
+        } else {
+            logDebug('Помилка: з\'єднання закрите при кліку готовий', '#ff4d4d');
+        }
     }
 }
 
@@ -411,7 +461,7 @@ const arenaTapZone = document.getElementById('arena-tap-zone');
 
 arenaTapZone.addEventListener('mousedown', registerTap);
 arenaTapZone.addEventListener('touchstart', (e) => {
-    e.preventDefault(); // Prevents double click zooms or scrolls on mobile devices
+    e.preventDefault(); 
     registerTap();
 });
 
@@ -419,12 +469,12 @@ function registerTap() {
     if (!gameActive) return;
 
     if (myRole === 'p1') {
-        // Player 1 taps: increases progress (moves to left/blue)
         hostState.progress += 2;
         handleGameplayProgress();
     } else if (myRole === 'p2') {
-        // Player 2 taps: sends command to Host
-        connection.send({ type: 'tap' });
+        if (connection && connection.open) {
+            connection.send({ type: 'tap' });
+        }
     }
 }
 
@@ -432,7 +482,6 @@ function runStartSequence(p1Index, p2Index) {
     setupScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
 
-    // Populate visual details
     document.getElementById('p1-img').src = characters[p1Index].src;
     document.getElementById('p1-game-name').textContent = characters[p1Index].name;
     document.getElementById('p2-img').src = characters[p2Index].src;
@@ -440,7 +489,6 @@ function runStartSequence(p1Index, p2Index) {
 
     updateProgress(50);
 
-    // Run 3, 2, 1 Countdown
     let count = 3;
     const countdownEl = document.getElementById('countdown');
     countdownEl.textContent = count;
@@ -457,6 +505,7 @@ function runStartSequence(p1Index, p2Index) {
             clearInterval(interval);
             countdownEl.classList.add('hidden');
             gameActive = true;
+            logDebug('БІЙ почався!');
         }
     }, 1000);
 }
@@ -464,11 +513,9 @@ function runStartSequence(p1Index, p2Index) {
 function updateProgress(progress) {
     const bar = document.getElementById('progress-bar');
     if (window.innerHeight > window.innerWidth) {
-        // Portrait mode
         bar.style.height = progress + '%';
         bar.style.width = '100%';
     } else {
-        // Landscape mode
         bar.style.width = progress + '%';
         bar.style.height = '100%';
     }
@@ -500,17 +547,16 @@ function runEndSequence(winnerRole, finalProgress) {
 
         winnerText.textContent = `${winnerName} ПЕРЕМІГ!`;
         winnerImg.src = winnerSrc;
+        logDebug(`Кінець гри. Переможець: ${winnerName}`);
 
-        // Automatically return to lobby after 4 seconds
         setTimeout(() => {
             resultScreen.classList.add('hidden');
             setupScreen.classList.remove('hidden');
         }, 4000);
 
-    }, 500); // Small delay to let the winning bar fully animate
+    }, 500);
 }
 
-// Responsive updates to scaling
 window.addEventListener('resize', () => {
     let stateObj = (myRole === 'p1') ? hostState : localState;
     if (stateObj) {
