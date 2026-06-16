@@ -23,6 +23,7 @@ let hostState = {
 };
 
 let localState = null;
+let lastProgress = 50; // Track last progress to sync tensing shake animations
 
 // UI Elements
 const connectScreen = document.getElementById('connect-screen');
@@ -102,16 +103,16 @@ function listenForPlayer2() {
             return;
         }
 
-        // If not in active game, overwrite Player 2 connection to fix reconnect/refresh issues
+        // Overwrite connection if not in active match to prevent hanging channels
         if (connection) {
             logDebug('Перепідключення: закриваємо попередній канал з\'єднання.');
-            connection.off(); // Remove listeners to avoid triggering false disconnect alerts
+            connection.off(); 
             connection.close();
         }
 
         connection = conn;
         hostState.p2Connected = true;
-        hostState.p2Ready = false; // Reset ready status for the new connection
+        hostState.p2Ready = false;
         
         setupHostDataListeners();
     });
@@ -127,7 +128,6 @@ function setupHostDataListeners() {
         updateLobbyUI(hostState);
     };
 
-    // Resilient open event handler
     if (connection.open) {
         handleOpen();
     } else {
@@ -477,12 +477,29 @@ function registerTap() {
     if (!gameActive) return;
 
     if (myRole === 'p1') {
+        // Player 1 pulls to Left: progress increases (0 -> 100)
         hostState.progress += 2;
         handleGameplayProgress();
     } else if (myRole === 'p2') {
+        // Player 2 pulls to Right: progress decreases (100 -> 0)
         if (connection && connection.open) {
             connection.send({ type: 'tap' });
         }
+    }
+}
+
+// Local visual tensing animation trigger
+function triggerTenseAnimation(player) {
+    const wrapper = document.querySelector(`#wrestler-${player} .wrestler-body-wrapper`);
+    if (wrapper) {
+        wrapper.classList.remove('tensing');
+        void wrapper.offsetWidth; // Trigger reflow to restart CSS animation
+        wrapper.classList.add('tensing');
+        
+        // Remove class after 150ms
+        setTimeout(() => {
+            wrapper.classList.remove('tensing');
+        }, 150);
     }
 }
 
@@ -495,6 +512,7 @@ function runStartSequence(p1Index, p2Index) {
     document.getElementById('p2-img').src = characters[p2Index].src;
     document.getElementById('p2-game-name').textContent = characters[p2Index].name;
 
+    lastProgress = 50;
     updateProgress(50);
 
     let count = 3;
@@ -519,14 +537,23 @@ function runStartSequence(p1Index, p2Index) {
 }
 
 function updateProgress(progress) {
-    const bar = document.getElementById('progress-bar');
-    if (window.innerHeight > window.innerWidth) {
-        bar.style.height = progress + '%';
-        bar.style.width = '100%';
-    } else {
-        bar.style.width = progress + '%';
-        bar.style.height = '100%';
+    const armAssembly = document.getElementById('arm-assembly');
+    if (armAssembly) {
+        // Calculate rotation angle: 0 degrees is middle (50% progress)
+        // Progress 100 (Player 1 winning) -> Rotate left (negative angle, e.g. -50deg)
+        // Progress 0 (Player 2 winning) -> Rotate right (positive angle, e.g. +50deg)
+        const angle = (50 - progress) * 1.15;
+        armAssembly.style.transform = `rotate(${angle}deg)`;
     }
+
+    // Trigger physical strain vibration depending on who tapped
+    if (progress > lastProgress) {
+        triggerTenseAnimation('p1');
+    } else if (progress < lastProgress) {
+        triggerTenseAnimation('p2');
+    }
+
+    lastProgress = progress;
 }
 
 function runEndSequence(winnerRole, finalProgress) {

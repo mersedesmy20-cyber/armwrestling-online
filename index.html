@@ -70,33 +70,68 @@
         <div id="lobby-message">Очікування суперника...</div>
     </div>
 
-    <!-- Active Game Screen (Tapping Arena) -->
+    <!-- Active Game Screen (2.5D Arena) -->
     <div id="game-screen" class="screen hidden">
         <div class="arena" id="arena-tap-zone">
-            <!-- Player 1 Side -->
-            <div class="arena-side" id="side-p1">
-                <div class="player-info">
-                    <img id="p1-img" src="" alt="Player 1">
-                    <div class="player-name-tag" id="p1-game-name">Гравець 1</div>
+            <!-- Left Wrestler (Player 1) -->
+            <div class="wrestler-container" id="wrestler-p1">
+                <div class="wrestler-body-wrapper">
+                    <img id="p1-img" class="wrestler-head" src="" alt="Player 1">
+                    <div class="wrestler-torso p1-torso">
+                        <div class="wrestler-arm-back"></div>
+                    </div>
                 </div>
+                <div class="wrestler-name" id="p1-game-name">Гравець 1</div>
             </div>
-            
-            <!-- Progress Bar -->
-            <div class="progress-container">
-                <div class="progress-bar" id="progress-bar"></div>
-                <div class="marker"></div>
-            </div>
-            
-            <!-- Player 2 Side -->
-            <div class="arena-side" id="side-p2">
-                <div class="player-info">
-                    <img id="p2-img" src="" alt="Player 2">
-                    <div class="player-name-tag" id="p2-game-name">Гравець 2</div>
+
+            <!-- Central Arm Wrestling Table -->
+            <div class="wrestling-table-container">
+                <div class="wrestling-table">
+                    <!-- Glow effect -->
+                    <div class="table-neon-glow"></div>
+                    <div class="table-top"></div>
+                    
+                    <!-- SVG Interactive Arm Assembly -->
+                    <div class="svg-arms-wrapper">
+                        <svg id="wrestling-arms" viewBox="0 0 200 200">
+                            <!-- Left Elbow Pad -->
+                            <ellipse cx="60" cy="170" rx="18" ry="6" fill="#4facfe" opacity="0.8" />
+                            <!-- Right Elbow Pad -->
+                            <ellipse cx="140" cy="170" rx="18" ry="6" fill="#ff758c" opacity="0.8" />
+                            
+                            <!-- Rotating Arm Group (pivot is at 100, 170) -->
+                            <g id="arm-assembly">
+                                <!-- Left Forearm (Blue Theme) -->
+                                <path d="M 60,170 Q 75,90 92,75" stroke="#4facfe" stroke-width="14" stroke-linecap="round" fill="none" stroke-linejoin="round" />
+                                <path d="M 60,170 Q 75,90 92,75" stroke="#00f2fe" stroke-width="6" stroke-linecap="round" fill="none" stroke-linejoin="round" />
+                                
+                                <!-- Right Forearm (Red Theme) -->
+                                <path d="M 140,170 Q 125,90 108,75" stroke="#ff758c" stroke-width="14" stroke-linecap="round" fill="none" stroke-linejoin="round" />
+                                <path d="M 140,170 Q 125,90 108,75" stroke="#ff4d6d" stroke-width="6" stroke-linecap="round" fill="none" stroke-linejoin="round" />
+                                
+                                <!-- Clasped Hands (Glowing Gold) -->
+                                <circle cx="100" cy="70" r="16" fill="#ffb8b8" opacity="0.2" />
+                                <circle cx="100" cy="70" r="10" fill="#f1c40f" />
+                                <path d="M 92,70 C 92,60 108,60 108,70 Z" fill="#e67e22" />
+                            </g>
+                        </svg>
+                    </div>
                 </div>
             </div>
 
-            <!-- Tap Instructions -->
-            <div id="tap-instruction-overlay">ТАПАЙТЕ ПО ЕКРАНУ!</div>
+            <!-- Right Wrestler (Player 2) -->
+            <div class="wrestler-container" id="wrestler-p2">
+                <div class="wrestler-body-wrapper">
+                    <img id="p2-img" class="wrestler-head" src="" alt="Player 2">
+                    <div class="wrestler-torso p2-torso">
+                        <div class="wrestler-arm-back"></div>
+                    </div>
+                </div>
+                <div class="wrestler-name" id="p2-game-name">Гравець 2</div>
+            </div>
+
+            <!-- Screen tap hint overlay -->
+            <div id="tap-instruction-overlay">ТАПАЙТЕ ПО ЕКРАНУ ШВИДШЕ!</div>
         </div>
         
         <div id="countdown" class="hidden">3</div>
