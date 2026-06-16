@@ -46,7 +46,7 @@ function logDebug(msg, color = '#00f2fe') {
     }
 }
 
-// Global JS Error Handler
+// Global JS Error Handler to display crashes on screen
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     logDebug(`КРИТИЧНА ПОМИЛКА: ${msg} (рядок ${lineNo}:${columnNo})`, '#ff4d4d');
     return false;
@@ -58,7 +58,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 function initiateHost() {
     logDebug('Ініціалізація хоста...');
-    connectStatus.textContent = 'Зв\'язок з хмарним сервером PeerJS...';
+    if (connectStatus) connectStatus.textContent = 'Зв\'язок з хмарним сервером PeerJS...';
     
     const code = Math.floor(1000 + Math.random() * 9000);
     const peerId = `armwrestling-p2p-${code}`;
@@ -69,12 +69,18 @@ function initiateHost() {
         myRole = 'p1';
         hostState.p1Connected = true;
         
-        roomIndicator.textContent = `Кімната: ${code}`;
-        roomIndicator.classList.remove('hidden');
-        roleIndicator.textContent = 'Ви: Гравець 1 (Хост)';
-        roleIndicator.style.color = '#4facfe';
+        if (roomIndicator) {
+            roomIndicator.textContent = `Кімната: ${code}`;
+            roomIndicator.classList.remove('hidden');
+        }
+        if (roleIndicator) {
+            roleIndicator.textContent = 'Ви: Гравець 1 (Хост)';
+            roleIndicator.style.color = '#4facfe';
+        }
 
-        connectStatus.innerHTML = `Кімнату створено! Код доступу: <span style="font-size:1.8rem; color:#00f2fe; font-weight:900;">${code}</span><br>Поділіться цим кодом з суперником.`;
+        if (connectStatus) {
+            connectStatus.innerHTML = `Кімнату створено! Код доступу: <span style="font-size:1.8rem; color:#00f2fe; font-weight:900;">${code}</span><br>Поділіться цим кодом з суперником.`;
+        }
         logDebug(`Кімнату створено з кодом ${code}. Очікування підключення...`);
         
         listenForPlayer2();
@@ -85,7 +91,7 @@ function initiateHost() {
         if (err.type === 'unavailable-id') {
             initiateHost();
         } else {
-            connectStatus.textContent = `Помилка: ${err.message}`;
+            if (connectStatus) connectStatus.textContent = `Помилка: ${err.message}`;
         }
     });
 }
@@ -121,8 +127,8 @@ function listenForPlayer2() {
 function setupHostDataListeners() {
     const handleOpen = () => {
         logDebug('З\'єднання з Гравцем 2 встановлено успішно!');
-        connectScreen.classList.add('hidden');
-        setupScreen.classList.remove('hidden');
+        if (connectScreen) connectScreen.classList.add('hidden');
+        if (setupScreen) setupScreen.classList.remove('hidden');
         
         sendStateToP2();
         updateLobbyUI(hostState);
@@ -246,16 +252,18 @@ function initiateJoiner() {
     }
 
     logDebug(`Підключення як гість до коду ${codeInput}...`);
-    connectStatus.textContent = 'Зв\'язок з хмарним сервером PeerJS...';
+    if (connectStatus) connectStatus.textContent = 'Зв\'язок з хмарним сервером PeerJS...';
 
     peer = new Peer();
 
     peer.on('open', (id) => {
         myRole = 'p2';
-        roleIndicator.textContent = 'Ви: Гравець 2 (Гість)';
-        roleIndicator.style.color = '#ff758c';
+        if (roleIndicator) {
+            roleIndicator.textContent = 'Ви: Гравець 2 (Гість)';
+            roleIndicator.style.color = '#ff758c';
+        }
         
-        connectStatus.textContent = `Підключення до кімнати ${codeInput}...`;
+        if (connectStatus) connectStatus.textContent = `Підключення до кімнати ${codeInput}...`;
 
         const hostPeerId = `armwrestling-p2p-${codeInput}`;
         connection = peer.connect(hostPeerId);
@@ -265,16 +273,16 @@ function initiateJoiner() {
 
     peer.on('error', (err) => {
         logDebug(`Помилка PeerJS (Гість): ${err.type} - ${err.message}`, '#ff4d4d');
-        connectStatus.textContent = `Помилка: ${err.message}`;
+        if (connectStatus) connectStatus.textContent = `Помилка: ${err.message}`;
     });
 }
 
 function setupJoinerDataListeners() {
     const handleOpen = () => {
         logDebug('Встановлено з\'єднання з Хостом!');
-        connectScreen.classList.add('hidden');
-        setupScreen.classList.remove('hidden');
-        lobbyMessage.textContent = 'Підключено! Очікуємо синхронізацію...';
+        if (connectScreen) connectScreen.classList.add('hidden');
+        if (setupScreen) setupScreen.classList.remove('hidden');
+        if (lobbyMessage) lobbyMessage.textContent = 'Підключено! Очікуємо синхронізацію...';
     };
 
     if (connection.open) {
@@ -336,23 +344,30 @@ function updateLobbyUI(state) {
     const readyP1 = document.getElementById('ready-p1');
 
     if (state.p1Connected) {
-        document.getElementById('p1-title').textContent = (myRole === 'p1') ? 'Ви (Гравець 1)' : 'Гравець 1';
-        document.getElementById('carousel-p1').innerHTML = `<img src="${characters[state.p1CharIndex].src}" alt="${characters[state.p1CharIndex].name}">`;
+        const p1Title = document.getElementById('p1-title');
+        const carouselP1 = document.getElementById('carousel-p1');
         
-        if (state.p1Ready) {
-            readyP1.textContent = 'ГОТОВИЙ';
-            readyP1.classList.add('is-ready');
-        } else {
-            readyP1.textContent = 'НЕ ГОТОВИЙ';
-            readyP1.classList.remove('is-ready');
+        if (p1Title) p1Title.textContent = (myRole === 'p1') ? 'Ви (Гравець 1)' : 'Гравець 1';
+        if (carouselP1) carouselP1.innerHTML = `<img src="${characters[state.p1CharIndex].src}" alt="${characters[state.p1CharIndex].name}">`;
+        
+        if (readyP1) {
+            if (state.p1Ready) {
+                readyP1.textContent = 'ГОТОВИЙ';
+                readyP1.classList.add('is-ready');
+            } else {
+                readyP1.textContent = 'НЕ ГОТОВИЙ';
+                readyP1.classList.remove('is-ready');
+            }
         }
 
-        if (myRole === 'p1' && !state.p1Ready) {
-            controlsP1.classList.remove('disabled');
-            p1Select.classList.add('active-player');
-        } else {
-            controlsP1.classList.add('disabled');
-            p1Select.classList.remove('active-player');
+        if (controlsP1) {
+            if (myRole === 'p1' && !state.p1Ready) {
+                controlsP1.classList.remove('disabled');
+                if (p1Select) p1Select.classList.add('active-player');
+            } else {
+                controlsP1.classList.add('disabled');
+                if (p1Select) p1Select.classList.remove('active-player');
+            }
         }
     }
 
@@ -362,57 +377,72 @@ function updateLobbyUI(state) {
     const readyP2 = document.getElementById('ready-p2');
 
     if (state.p2Connected) {
-        document.getElementById('p2-title').textContent = (myRole === 'p2') ? 'Ви (Гравець 2)' : 'Гравець 2';
-        document.getElementById('carousel-p2').innerHTML = `<img src="${characters[state.p2CharIndex].src}" alt="${characters[state.p2CharIndex].name}">`;
+        const p2Title = document.getElementById('p2-title');
+        const carouselP2 = document.getElementById('carousel-p2');
 
-        if (state.p2Ready) {
-            readyP2.textContent = 'ГОТОВИЙ';
-            readyP2.classList.add('is-ready');
-        } else {
-            readyP2.textContent = 'НЕ ГОТОВИЙ';
-            readyP2.classList.remove('is-ready');
+        if (p2Title) p2Title.textContent = (myRole === 'p2') ? 'Ви (Гравець 2)' : 'Гравець 2';
+        if (carouselP2) carouselP2.innerHTML = `<img src="${characters[state.p2CharIndex].src}" alt="${characters[state.p2CharIndex].name}">`;
+
+        if (readyP2) {
+            if (state.p2Ready) {
+                readyP2.textContent = 'ГОТОВИЙ';
+                readyP2.classList.add('is-ready');
+            } else {
+                readyP2.textContent = 'НЕ ГОТОВИЙ';
+                readyP2.classList.remove('is-ready');
+            }
         }
 
-        if (myRole === 'p2' && !state.p2Ready) {
-            controlsP2.classList.remove('disabled');
-            p2Select.classList.add('active-player');
-        } else {
-            controlsP2.classList.add('disabled');
-            p2Select.classList.remove('active-player');
+        if (controlsP2) {
+            if (myRole === 'p2' && !state.p2Ready) {
+                controlsP2.classList.remove('disabled');
+                if (p2Select) p2Select.classList.add('active-player');
+            } else {
+                controlsP2.classList.add('disabled');
+                if (p2Select) p2Select.classList.remove('active-player');
+            }
         }
     } else {
-        document.getElementById('p2-title').textContent = 'Гравець 2 (Очікування...)';
-        document.getElementById('carousel-p2').innerHTML = '<div class="carousel-placeholder">Очікування підключення...</div>';
-        readyP2.textContent = 'НЕ ПІДКЛЮЧЕНО';
-        readyP2.classList.remove('is-ready');
-        controlsP2.classList.add('disabled');
-        p2Select.classList.remove('active-player');
+        const p2Title = document.getElementById('p2-title');
+        const carouselP2 = document.getElementById('carousel-p2');
+        if (p2Title) p2Title.textContent = 'Гравець 2 (Очікування...)';
+        if (carouselP2) carouselP2.innerHTML = '<div class="carousel-placeholder">Очікування підключення...</div>';
+        if (readyP2) {
+            readyP2.textContent = 'НЕ ПІДКЛЮЧЕНО';
+            readyP2.classList.remove('is-ready');
+        }
+        if (controlsP2) controlsP2.classList.add('disabled');
+        if (p2Select) p2Select.classList.remove('active-player');
     }
 
     // Ready button styling
-    const amIReady = (myRole === 'p1') ? state.p1Ready : state.p2Ready;
-    if (amIReady) {
-        readyBtn.textContent = 'СКАСУВАТИ ГОТОВНІСТЬ';
-        readyBtn.classList.add('active');
-    } else {
-        readyBtn.textContent = 'ГОТОВИЙ';
-        readyBtn.classList.remove('active');
+    if (readyBtn) {
+        const amIReady = (myRole === 'p1') ? state.p1Ready : state.p2Ready;
+        if (amIReady) {
+            readyBtn.textContent = 'СКАСУВАТИ ГОТОВНІСТЬ';
+            readyBtn.classList.add('active');
+        } else {
+            readyBtn.textContent = 'ГОТОВИЙ';
+            readyBtn.classList.remove('active');
+        }
     }
 
     // Lobby status updates
-    if (!state.p2Connected) {
-        lobbyMessage.textContent = 'Очікуємо суперника...';
-        readyBtn.classList.add('hidden');
-    } else {
-        readyBtn.classList.remove('hidden');
-        if (!state.p1Ready && !state.p2Ready) {
-            lobbyMessage.textContent = 'Оберіть персонажів та натисніть "Готовий"';
-        } else if (state.p1Ready && !state.p2Ready) {
-            lobbyMessage.textContent = 'Гравець 1 готовий. Очікуємо Гравця 2...';
-        } else if (!state.p1Ready && state.p2Ready) {
-            lobbyMessage.textContent = 'Гравець 2 готовий. Очікуємо Гравця 1...';
+    if (lobbyMessage) {
+        if (!state.p2Connected) {
+            lobbyMessage.textContent = 'Очікуємо суперника...';
+            if (readyBtn) readyBtn.classList.add('hidden');
         } else {
-            lobbyMessage.textContent = 'Обидва гравці готові! Гра починається...';
+            if (readyBtn) readyBtn.classList.remove('hidden');
+            if (!state.p1Ready && !state.p2Ready) {
+                lobbyMessage.textContent = 'Оберіть персонажів та натисніть "Готовий"';
+            } else if (state.p1Ready && !state.p2Ready) {
+                lobbyMessage.textContent = 'Гравець 1 готовий. Очікуємо Гравця 2...';
+            } else if (!state.p1Ready && state.p2Ready) {
+                lobbyMessage.textContent = 'Гравець 2 готовий. Очікуємо Гравця 1...';
+            } else {
+                lobbyMessage.textContent = 'Обидва гравці готові! Гра починається...';
+            }
         }
     }
 }
@@ -466,22 +496,21 @@ function toggleReady() {
 
 // Global screen tap event listener during active gameplay
 const arenaTapZone = document.getElementById('arena-tap-zone');
-
-arenaTapZone.addEventListener('mousedown', registerTap);
-arenaTapZone.addEventListener('touchstart', (e) => {
-    e.preventDefault(); 
-    registerTap();
-});
+if (arenaTapZone) {
+    arenaTapZone.addEventListener('mousedown', registerTap);
+    arenaTapZone.addEventListener('touchstart', (e) => {
+        e.preventDefault(); 
+        registerTap();
+    });
+}
 
 function registerTap() {
     if (!gameActive) return;
 
     if (myRole === 'p1') {
-        // Player 1 pulls to Left: progress increases (0 -> 100)
         hostState.progress += 2;
         handleGameplayProgress();
     } else if (myRole === 'p2') {
-        // Player 2 pulls to Right: progress decreases (100 -> 0)
         if (connection && connection.open) {
             connection.send({ type: 'tap' });
         }
@@ -493,10 +522,9 @@ function triggerTenseAnimation(player) {
     const wrapper = document.querySelector(`#wrestler-${player} .wrestler-body-wrapper`);
     if (wrapper) {
         wrapper.classList.remove('tensing');
-        void wrapper.offsetWidth; // Trigger reflow to restart CSS animation
+        void wrapper.offsetWidth; 
         wrapper.classList.add('tensing');
         
-        // Remove class after 150ms
         setTimeout(() => {
             wrapper.classList.remove('tensing');
         }, 150);
@@ -504,34 +532,46 @@ function triggerTenseAnimation(player) {
 }
 
 function runStartSequence(p1Index, p2Index) {
-    setupScreen.classList.add('hidden');
-    gameScreen.classList.remove('hidden');
+    if (setupScreen) setupScreen.classList.add('hidden');
+    if (gameScreen) gameScreen.classList.remove('hidden');
 
-    document.getElementById('p1-img').src = characters[p1Index].src;
-    document.getElementById('p1-game-name').textContent = characters[p1Index].name;
-    document.getElementById('p2-img').src = characters[p2Index].src;
-    document.getElementById('p2-game-name').textContent = characters[p2Index].name;
+    const p1Img = document.getElementById('p1-img');
+    const p1Name = document.getElementById('p1-game-name');
+    const p2Img = document.getElementById('p2-img');
+    const p2Name = document.getElementById('p2-game-name');
+
+    if (p1Img) p1Img.src = characters[p1Index].src;
+    if (p1Name) p1Name.textContent = characters[p1Index].name;
+    if (p2Img) p2Img.src = characters[p2Index].src;
+    if (p2Name) p2Name.textContent = characters[p2Index].name;
 
     lastProgress = 50;
     updateProgress(50);
 
     let count = 3;
     const countdownEl = document.getElementById('countdown');
-    countdownEl.textContent = count;
-    countdownEl.classList.remove('hidden');
+    if (countdownEl) {
+        countdownEl.textContent = count;
+        countdownEl.classList.remove('hidden');
+    }
     gameActive = false;
 
     const interval = setInterval(() => {
         count--;
-        if (count > 0) {
-            countdownEl.textContent = count;
-        } else if (count === 0) {
-            countdownEl.textContent = 'БІЙ!';
+        if (countdownEl) {
+            if (count > 0) {
+                countdownEl.textContent = count;
+            } else if (count === 0) {
+                countdownEl.textContent = 'БІЙ!';
+            } else {
+                clearInterval(interval);
+                countdownEl.classList.add('hidden');
+                gameActive = true;
+                logDebug('БІЙ почався!');
+            }
         } else {
             clearInterval(interval);
-            countdownEl.classList.add('hidden');
             gameActive = true;
-            logDebug('БІЙ почався!');
         }
     }, 1000);
 }
@@ -539,11 +579,14 @@ function runStartSequence(p1Index, p2Index) {
 function updateProgress(progress) {
     const armAssembly = document.getElementById('arm-assembly');
     if (armAssembly) {
-        // Calculate rotation angle: 0 degrees is middle (50% progress)
-        // Progress 100 (Player 1 winning) -> Rotate left (negative angle, e.g. -50deg)
-        // Progress 0 (Player 2 winning) -> Rotate right (positive angle, e.g. +50deg)
         const angle = (50 - progress) * 1.15;
         armAssembly.style.transform = `rotate(${angle}deg)`;
+    }
+
+    const glow = document.getElementById('arms-glow');
+    if (glow) {
+        const intensity = Math.abs(50 - progress) / 50;
+        glow.style.opacity = intensity * 0.8;
     }
 
     // Trigger physical strain vibration depending on who tapped
@@ -561,8 +604,8 @@ function runEndSequence(winnerRole, finalProgress) {
     updateProgress(finalProgress);
 
     setTimeout(() => {
-        gameScreen.classList.add('hidden');
-        resultScreen.classList.remove('hidden');
+        if (gameScreen) gameScreen.classList.add('hidden');
+        if (resultScreen) resultScreen.classList.remove('hidden');
 
         const winnerText = document.getElementById('winner-text');
         const winnerImg = document.getElementById('winner-img');
@@ -571,22 +614,23 @@ function runEndSequence(winnerRole, finalProgress) {
         let winnerSrc = '';
 
         let stateObj = (myRole === 'p1') ? hostState : localState;
-
-        if (winnerRole === 'p1') {
-            winnerName = characters[stateObj.p1CharIndex].name;
-            winnerSrc = characters[stateObj.p1CharIndex].src;
-        } else {
-            winnerName = characters[stateObj.p2CharIndex].name;
-            winnerSrc = characters[stateObj.p2CharIndex].src;
+        if (stateObj) {
+            if (winnerRole === 'p1') {
+                winnerName = characters[stateObj.p1CharIndex].name;
+                winnerSrc = characters[stateObj.p1CharIndex].src;
+            } else {
+                winnerName = characters[stateObj.p2CharIndex].name;
+                winnerSrc = characters[stateObj.p2CharIndex].src;
+            }
         }
 
-        winnerText.textContent = `${winnerName} ПЕРЕМІГ!`;
-        winnerImg.src = winnerSrc;
+        if (winnerText) winnerText.textContent = `${winnerName} ПЕРЕМІГ!`;
+        if (winnerImg) winnerImg.src = winnerSrc;
         logDebug(`Кінець гри. Переможець: ${winnerName}`);
 
         setTimeout(() => {
-            resultScreen.classList.add('hidden');
-            setupScreen.classList.remove('hidden');
+            if (resultScreen) resultScreen.classList.add('hidden');
+            if (setupScreen) setupScreen.classList.remove('hidden');
         }, 4000);
 
     }, 500);

@@ -10,7 +10,7 @@
 body, html {
     width: 100%;
     height: 100%;
-    background-color: #080810;
+    background-color: #05050a;
     color: #fff;
     overflow: hidden;
 }
@@ -343,150 +343,139 @@ body, html {
     text-align: center;
 }
 
-/* Game Screen (2.5D Arena Layout) */
+/* Active Game Screen (Photorealistic Arena) */
 .arena {
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle, #151528 0%, #080810 100%);
+    align-items: flex-end;
+    justify-content: space-between;
+    background: url('images/wrestling_background.png') no-repeat center center;
+    background-size: cover;
     position: relative;
     overflow: hidden;
+    padding: 0 5%;
+    padding-bottom: 30px;
 }
 
-/* Wrestler Character Styling */
+/* Wrestler Containers (Left and Right Muscular Bodies) */
 .wrestler-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     z-index: 10;
-    width: 200px;
-    transition: transform 0.1s ease;
+    width: 220px;
+    height: 330px;
+    position: relative;
 }
 
 .wrestler-body-wrapper {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     width: 100%;
+    height: 100%;
 }
 
 .wrestler-head {
-    width: 95px;
-    height: 95px;
+    width: 82px;
+    height: 82px;
     border-radius: 50%;
-    border: 4px solid #fff;
+    border: 3px solid #fff;
     object-fit: cover;
-    z-index: 5;
-    position: relative;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    z-index: 20;
+    position: absolute;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.6);
 }
 
-/* Torso Silhouettes */
+/* Absolute head positioning to match headless neck joints */
+#wrestler-p1 .wrestler-head {
+    top: 5px;
+    left: 88px; /* Alignment for left wrestler's neck */
+}
+
+#wrestler-p2 .wrestler-head {
+    top: 5px;
+    right: 88px; /* Alignment for right wrestler's neck */
+}
+
+/* Wrestler Torsos (Muscular bodies) */
 .wrestler-torso {
-    width: 140px;
-    height: 110px;
-    margin-top: -15px;
-    border-radius: 40px 40px 10px 10px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 10px 20px rgba(255, 255, 255, 0.05);
-    z-index: 4;
-    position: relative;
+    width: 220px;
+    height: 260px;
+    position: absolute;
+    bottom: 0;
+    z-index: 10;
 }
 
-.p1-torso {
-    background: linear-gradient(180deg, #1f4068, #162447);
-    border-color: #4facfe;
-    box-shadow: 0 0 15px rgba(79, 172, 254, 0.2);
+.p1-torso-img {
+    background: url('images/left_wrestler_body.png') no-repeat center bottom;
+    background-size: contain;
 }
 
-.p2-torso {
-    background: linear-gradient(180deg, #b83b5e, #6a2c70);
-    border-color: #ff758c;
-    box-shadow: 0 0 15px rgba(255, 117, 140, 0.2);
+.p2-torso-img {
+    background: url('images/right_wrestler_body.png') no-repeat center bottom;
+    background-size: contain;
 }
 
 .wrestler-name {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 900;
     color: #fff;
-    margin-top: 12px;
-    background: rgba(0,0,0,0.6);
-    padding: 4px 15px;
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    padding: 4px 12px;
     border-radius: 20px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    border: 1px solid rgba(255,255,255,0.05);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    border: 1px solid rgba(255,255,255,0.08);
+    white-space: nowrap;
 }
 
-/* central table */
+/* Central Table & Clasped Forearms Container */
 .wrestling-table-container {
-    width: 320px;
-    height: 220px;
+    width: 280px;
+    height: 280px;
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
     display: flex;
     align-items: flex-end;
     justify-content: center;
+}
+
+/* Rotatable forearms image wrapper */
+#arm-assembly {
+    width: 280px;
+    height: 280px;
+    transform-origin: 50% 90%; /* Pivot point is at the bottom-center of the image (elbows on the table) */
+    transition: transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     position: relative;
-    z-index: 8;
-    margin: 0 -20px;
 }
 
-.wrestling-table {
-    width: 100%;
-    height: 110px;
-    background: #111;
-    border-radius: 12px;
-    border: 4px solid #222;
-    position: relative;
-    box-shadow: 0 20px 45px rgba(0,0,0,0.8);
-}
-
-.table-neon-glow {
-    position: absolute;
-    top: -4px;
-    left: -4px;
-    width: calc(100% + 8px);
-    height: calc(100% + 8px);
-    border-radius: 12px;
-    box-shadow: 0 0 25px rgba(0, 242, 254, 0.35);
-    pointer-events: none;
-    z-index: 1;
-}
-
-.table-top {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 35px;
-    background: linear-gradient(180deg, #1b1b2f, #162447);
-    border-radius: 8px 8px 0 0;
-    border-bottom: 3px solid #ff758c; /* Red neon divider edge */
-    z-index: 2;
-}
-
-/* Arms SVG Wrapper */
-.svg-arms-wrapper {
-    position: absolute;
-    top: -125px; /* Sits straight on the table top surface */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 250px;
-    height: 250px;
-    z-index: 6;
-    pointer-events: none;
-}
-
-#wrestling-arms {
+#forearms-img {
     width: 100%;
     height: 100%;
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.5));
+    object-fit: contain;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6));
 }
 
-#arm-assembly {
-    transform-origin: 100px 170px;
-    transition: transform 0.08s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* Aura glowing effect when match gets close or taps are rapid */
+.arms-glow-aura {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(241, 196, 15, 0.2) 0%, rgba(241, 196, 15, 0) 70%);
+    pointer-events: none;
+    z-index: 14;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
 #tap-instruction-overlay {
@@ -496,18 +485,19 @@ body, html {
     transform: translateX(-50%);
     font-size: 1.3rem;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.75);
-    text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.95);
     animation: text-pulse 1s infinite alternate;
     pointer-events: none;
     text-align: center;
     width: 90%;
     letter-spacing: 0.5px;
+    z-index: 30;
 }
 
 @keyframes text-pulse {
-    from { transform: translateX(-50%) scale(1); opacity: 0.6; }
-    to { transform: translateX(-50%) scale(1.04); opacity: 1; }
+    from { transform: translateX(-50%) scale(1); opacity: 0.7; }
+    to { transform: translateX(-50%) scale(1.03); opacity: 1; }
 }
 
 /* Dynamic Tensing Shaking Animations */
@@ -516,9 +506,9 @@ body, html {
 }
 
 @keyframes strain-shake {
-    0% { transform: translate(1px, 2px) rotate(0.5deg); }
-    50% { transform: translate(-2px, -1px) rotate(-0.5deg); }
-    100% { transform: translate(2px, 0px) rotate(0.5deg); }
+    0% { transform: translate(1.5px, 2px) rotate(0.4deg); }
+    50% { transform: translate(-2px, -1.5px) rotate(-0.4deg); }
+    100% { transform: translate(2px, 0px) rotate(0.4deg); }
 }
 
 /* Countdown overlay */
@@ -570,49 +560,74 @@ body, html {
     50% { transform: translateY(-15px); }
 }
 
-/* Responsive adjustment for Mobile (Portrait vs Landscape) */
+/* Responsive adjustment for Mobile (Portrait vs Landscape layout) */
 @media (orientation: portrait) {
     .arena {
-        flex-direction: column;
-        justify-content: space-evenly;
+        flex-direction: row; /* Keep side-by-side even in portrait! */
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 2%;
+        padding-bottom: 50px;
     }
 
+    /* Scale down all assets in portrait so they fit inside screen width */
     .wrestler-container {
-        transform: scale(0.9);
+        width: 120px;
+        height: 200px;
     }
-    
-    #wrestler-p1 {
-        order: 1;
-        /* Rotate Player 1's card in portrait for face-to-face mode, 
-           but since it's online, standard rotation is fine. We keep them both straight */
+
+    .wrestler-torso {
+        width: 120px;
+        height: 150px;
     }
-    
+
+    .wrestler-head {
+        width: 48px;
+        height: 48px;
+        border-width: 2px;
+    }
+
+    #wrestler-p1 .wrestler-head {
+        top: 2px;
+        left: 48px; /* Scaled neck alignment P1 */
+    }
+
+    #wrestler-p2 .wrestler-head {
+        top: 2px;
+        right: 48px; /* Scaled neck alignment P2 */
+    }
+
     .wrestling-table-container {
-        order: 2;
-        margin: -30px 0;
-        transform: scale(0.9);
+        width: 180px;
+        height: 180px;
+        bottom: 12%;
+    }
+
+    #arm-assembly {
+        width: 180px;
+        height: 180px;
     }
     
-    #wrestler-p2 {
-        order: 3;
+    .wrestler-name {
+        font-size: 0.85rem;
+        bottom: -30px;
+        padding: 3px 8px;
     }
-    
+
     #tap-instruction-overlay {
-        bottom: 5%;
+        bottom: 8%;
+        font-size: 0.95rem;
     }
 }
 
-@media (orientation: landscape) {
-    .arena {
-        flex-direction: row;
-        justify-content: space-evenly;
-    }
-    
-    .wrestler-container {
-        transform: scale(1.05);
-    }
-    
+@media (max-width: 320px) {
+    /* Super small screens fallback */
     .wrestling-table-container {
-        transform: scale(1.1);
+        width: 140px;
+        height: 140px;
+    }
+    #arm-assembly {
+        width: 140px;
+        height: 140px;
     }
 }

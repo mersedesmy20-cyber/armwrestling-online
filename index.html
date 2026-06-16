@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Армреслінг Онлайн</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- Add query version parameter to bypass aggressive mobile caching -->
+    <link rel="stylesheet" href="styles.css?v=3.0">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <!-- Include PeerJS library for Peer-to-Peer WebRTC networking -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -70,68 +71,43 @@
         <div id="lobby-message">Очікування суперника...</div>
     </div>
 
-    <!-- Active Game Screen (2.5D Arena) -->
+    <!-- Active Game Screen (Photorealistic Arena) -->
     <div id="game-screen" class="screen hidden">
         <div class="arena" id="arena-tap-zone">
             <!-- Left Wrestler (Player 1) -->
             <div class="wrestler-container" id="wrestler-p1">
                 <div class="wrestler-body-wrapper">
+                    <!-- Head avatar positioned on neck -->
                     <img id="p1-img" class="wrestler-head" src="" alt="Player 1">
-                    <div class="wrestler-torso p1-torso">
-                        <div class="wrestler-arm-back"></div>
-                    </div>
+                    <!-- Left muscular body torso -->
+                    <div class="wrestler-torso p1-torso-img"></div>
                 </div>
                 <div class="wrestler-name" id="p1-game-name">Гравець 1</div>
             </div>
 
-            <!-- Central Arm Wrestling Table -->
+            <!-- Central Arm Wrestling Table with Rotating Forearms -->
             <div class="wrestling-table-container">
-                <div class="wrestling-table">
-                    <!-- Glow effect -->
-                    <div class="table-neon-glow"></div>
-                    <div class="table-top"></div>
-                    
-                    <!-- SVG Interactive Arm Assembly -->
-                    <div class="svg-arms-wrapper">
-                        <svg id="wrestling-arms" viewBox="0 0 200 200">
-                            <!-- Left Elbow Pad -->
-                            <ellipse cx="60" cy="170" rx="18" ry="6" fill="#4facfe" opacity="0.8" />
-                            <!-- Right Elbow Pad -->
-                            <ellipse cx="140" cy="170" rx="18" ry="6" fill="#ff758c" opacity="0.8" />
-                            
-                            <!-- Rotating Arm Group (pivot is at 100, 170) -->
-                            <g id="arm-assembly">
-                                <!-- Left Forearm (Blue Theme) -->
-                                <path d="M 60,170 Q 75,90 92,75" stroke="#4facfe" stroke-width="14" stroke-linecap="round" fill="none" stroke-linejoin="round" />
-                                <path d="M 60,170 Q 75,90 92,75" stroke="#00f2fe" stroke-width="6" stroke-linecap="round" fill="none" stroke-linejoin="round" />
-                                
-                                <!-- Right Forearm (Red Theme) -->
-                                <path d="M 140,170 Q 125,90 108,75" stroke="#ff758c" stroke-width="14" stroke-linecap="round" fill="none" stroke-linejoin="round" />
-                                <path d="M 140,170 Q 125,90 108,75" stroke="#ff4d6d" stroke-width="6" stroke-linecap="round" fill="none" stroke-linejoin="round" />
-                                
-                                <!-- Clasped Hands (Glowing Gold) -->
-                                <circle cx="100" cy="70" r="16" fill="#ffb8b8" opacity="0.2" />
-                                <circle cx="100" cy="70" r="10" fill="#f1c40f" />
-                                <path d="M 92,70 C 92,60 108,60 108,70 Z" fill="#e67e22" />
-                            </g>
-                        </svg>
-                    </div>
+                <!-- Glowing effect representing the action core -->
+                <div class="arms-glow-aura" id="arms-glow"></div>
+                
+                <div id="arm-assembly">
+                    <img src="images/clasped_forearms.png" id="forearms-img" alt="Arms">
                 </div>
             </div>
 
             <!-- Right Wrestler (Player 2) -->
             <div class="wrestler-container" id="wrestler-p2">
                 <div class="wrestler-body-wrapper">
+                    <!-- Head avatar positioned on neck -->
                     <img id="p2-img" class="wrestler-head" src="" alt="Player 2">
-                    <div class="wrestler-torso p2-torso">
-                        <div class="wrestler-arm-back"></div>
-                    </div>
+                    <!-- Right muscular body torso -->
+                    <div class="wrestler-torso p2-torso-img"></div>
                 </div>
                 <div class="wrestler-name" id="p2-game-name">Гравець 2</div>
             </div>
 
             <!-- Screen tap hint overlay -->
-            <div id="tap-instruction-overlay">ТАПАЙТЕ ПО ЕКРАНУ ШВИДШЕ!</div>
+            <div id="tap-instruction-overlay">ТАПАЙТЕ ПО ЕКРАНУ ЯКОМОГА ШВИДШЕ!</div>
         </div>
         
         <div id="countdown" class="hidden">3</div>
@@ -149,6 +125,7 @@
         [Лог з'єднання]: Очікування дій...
     </div>
 
-    <script src="script.js"></script>
+    <!-- Add version parameter here too -->
+    <script src="script.js?v=3.0"></script>
 </body>
 </html>
