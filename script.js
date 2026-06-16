@@ -93,8 +93,8 @@ function listenForPlayer2() {
     peer.on('connection', (conn) => {
         logDebug(`Отримано запит на підключення від ${conn.peer}`);
         
-        if (hostState.p2Connected) {
-            logDebug('Відхилено підключення (лобі заповнене)');
+        if (hostState.gameActive) {
+            logDebug('Відхилено підключення (активна гра)');
             conn.on('open', () => {
                 conn.send({ type: 'lobby_full' });
                 setTimeout(() => conn.close(), 500);
@@ -102,8 +102,16 @@ function listenForPlayer2() {
             return;
         }
 
+        // If not in active game, overwrite Player 2 connection to fix reconnect/refresh issues
+        if (connection) {
+            logDebug('Перепідключення: закриваємо попередній канал з\'єднання.');
+            connection.off(); // Remove listeners to avoid triggering false disconnect alerts
+            connection.close();
+        }
+
         connection = conn;
         hostState.p2Connected = true;
+        hostState.p2Ready = false; // Reset ready status for the new connection
         
         setupHostDataListeners();
     });
