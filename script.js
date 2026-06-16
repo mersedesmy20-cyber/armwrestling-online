@@ -112,7 +112,14 @@ function listenForPlayer2() {
         // Overwrite connection if not in active match to prevent hanging channels
         if (connection) {
             logDebug('Перепідключення: закриваємо попередній канал з\'єднання.');
-            connection.off(); 
+            try {
+                connection.off('open');
+                connection.off('data');
+                connection.off('error');
+                connection.off('close');
+            } catch (e) {
+                logDebug('Помилка при чищенні лісенерів: ' + e.message, '#ff9f43');
+            }
             connection.close();
         }
 
